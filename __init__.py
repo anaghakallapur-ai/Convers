@@ -1,3 +1,3 @@
 """
-API package for the Convers backend.
+Routers package for the Convers API.
 """
