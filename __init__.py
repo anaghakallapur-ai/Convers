@@ -1,3 +1,3 @@
 """
-Routers package for the Convers API.
+Scenarios package for the Convers backend.
 """
