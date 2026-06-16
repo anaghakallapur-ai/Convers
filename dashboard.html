@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Convers - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<style>
+.material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:24px;line-height:1;display:inline-block;-webkit-font-smoothing:antialiased;}
+.glass-panel{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border:1px solid rgba(62,72,78,0.6);}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px;}
+.tab-active{border-bottom:2px solid #64cefb;color:white;}
+</style>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{"background":"#131313","on-background":"#e2e2e2","surface-container":"#1f1f1f","surface-container-high":"#2a2a2a","surface-container-highest":"#353535","primary":"#b3e5ff","primary-container":"#64cefb","on-primary-container":"#005671","outline-variant":"#3e484e","error":"#ffb4ab","tertiary":"#ffd7aa"},fontFamily:{"body-md":["Inter"]}}}}
+</script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<video autoplay class="fixed inset-0 w-full h-full object-cover z-0 opacity-20" loop muted playsinline>
+  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_105406_16f4600d-7a92-4292-b96e-b19156c7830a.mp4" type="video/mp4"/>
+</video>
+<div class="relative z-10 max-w-5xl mx-auto px-4 py-6">
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-8">
+    <a href="index.html" class="flex items-center gap-2"><div class="w-7 h-7 rounded-full border border-white/70 flex items-center justify-center"><div class="w-1.5 h-1.5 bg-white rounded-full"></div></div><span class="text-white font-bold text-lg">Convers</span></a>
+    <div class="flex items-center gap-3">
+      <span class="text-white/60 text-sm" id="user-greeting">Hi there</span>
+      <button onclick="logout()" class="text-xs text-red-300 hover:text-red-200 border border-red-500/20 px-3 py-1 rounded-full">Logout</button>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="glass-panel rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-primary-container" id="stat-sessions">0</div><div class="text-[10px] text-white/40 uppercase tracking-wider">Sessions</div></div>
+    <div class="glass-panel rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-tertiary" id="stat-avg">0</div><div class="text-[10px] text-white/40 uppercase tracking-wider">Avg Score</div></div>
+    <div class="glass-panel rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-green-400" id="stat-streak">0</div><div class="text-[10px] text-white/40 uppercase tracking-wider">Day Streak</div></div>
+    <div class="glass-panel rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-purple-400" id="stat-points">0</div><div class="text-[10px] text-white/40 uppercase tracking-wider">Points</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-6 border-b border-white/10 mb-6">
+    <button onclick="showPanel('history')" class="pb-3 text-sm font-medium tab-active" id="tab-history">History</button>
+    <button onclick="showPanel('badges')" class="pb-3 text-sm font-medium text-white/40" id="tab-badges">Badges</button>
+    <button onclick="showPanel('leaderboard')" class="pb-3 text-sm font-medium text-white/40" id="tab-leaderboard">Leaderboard</button>
+    <button onclick="showPanel('challenge')" class="pb-3 text-sm font-medium text-white/40" id="tab-challenge">Challenge</button>
+  </div>
+
+  <!-- History Panel -->
+  <div id="panel-history">
+    <div id="history-list" class="flex flex-col gap-3">
+      <p class="text-white/30 text-sm text-center py-8">Loading sessions...</p>
+    </div>
+  </div>
+
+  <!-- Badges Panel -->
+  <div id="panel-badges" class="hidden">
+    <div id="badges-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+  </div>
+
+  <!-- Leaderboard Panel -->
+  <div id="panel-leaderboard" class="hidden">
+    <div class="glass-panel rounded-2xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-white/10"><th class="text-left p-3 text-white/40 text-xs">#</th><th class="text-left p-3 text-white/40 text-xs">Player</th><th class="text-right p-3 text-white/40 text-xs">Points</th><th class="text-right p-3 text-white/40 text-xs">Sessions</th><th class="text-right p-3 text-white/40 text-xs">Streak</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Challenge Panel -->
+  <div id="panel-challenge" class="hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="glass-panel rounded-2xl p-6">
+        <h3 class="text-white font-semibold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-primary-container">sports_esports</span>Accept a Challenge</h3>
+        <div class="flex gap-2">
+          <input id="challenge-code-input" type="text" placeholder="Enter code (e.g. A1B2C3D4)" class="flex-1 bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm uppercase focus:border-primary-container focus:ring-0"/>
+          <button onclick="lookupChallenge()" class="bg-primary-container text-on-primary-container px-4 rounded-lg font-semibold text-sm">Go</button>
+        </div>
+        <div id="challenge-preview" class="mt-4 hidden"></div>
+      </div>
+      <div class="glass-panel rounded-2xl p-6">
+        <h3 class="text-white font-semibold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-tertiary">share</span>Your Challenge Codes</h3>
+        <p class="text-white/40 text-sm">End a session and click "Challenge a Friend" in the feedback to generate a code.</p>
+        <div id="my-challenges" class="mt-3 flex flex-col gap-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Replay Modal -->
+  <div id="replay-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-2xl w-full rounded-3xl p-6 max-h-[85vh] overflow-y-auto flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-white">Conversation Replay</h2>
+        <button onclick="const m=document.getElementById('replay-modal');m.classList.add('hidden');m.classList.remove('flex')" class="text-white/40 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div id="replay-meta" class="flex gap-3 text-xs text-white/40"></div>
+      <div id="replay-chat" class="flex flex-col gap-3"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API=window.location.origin+'/api';
+const token=localStorage.getItem('convers_token');
+if(!token)window.location.href='login.html';
+const headers={'Content-Type':'application/json','Authorization':'Bearer '+token};
+const user=JSON.parse(localStorage.getItem('convers_user')||'{}');
+document.getElementById('user-greeting').textContent='Hi, '+( user.display_name||user.username||'there');
+const SCENARIO_LABELS={hr_interview:'🧑‍💼 HR Interview',upsc_test:'🏛️ UPSC',customer_support:'📞 Support',public_speaking:'🎤 Speaking',english_practice:'🌐 English',custom:'✨ Custom'};
+
+function logout(){localStorage.removeItem('convers_token');localStorage.removeItem('convers_user');window.location.href='login.html';}
+function showPanel(name){
+  ['history','badges','leaderboard','challenge'].forEach(p=>{
+    document.getElementById('panel-'+p).classList.toggle('hidden',p!==name);
+    const tab=document.getElementById('tab-'+p);
+    tab.className='pb-3 text-sm font-medium '+(p===name?'tab-active':'text-white/40');
+  });
+}
+function fmtTime(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return m+'m '+sec+'s';}
+
+// Load stats
+fetch(API+'/history/stats',{headers}).then(r=>r.json()).then(d=>{
+  document.getElementById('stat-sessions').textContent=d.total_sessions||0;
+  document.getElementById('stat-avg').textContent=d.avg_score||0;
+  document.getElementById('stat-streak').textContent=d.streak_days||0;
+  document.getElementById('stat-points').textContent=d.total_points||0;
+}).catch(()=>{});
+
+// Load history
+fetch(API+'/history/sessions',{headers}).then(r=>r.json()).then(d=>{
+  const list=document.getElementById('history-list');
+  if(!d.sessions||!d.sessions.length){list.innerHTML='<p class="text-white/30 text-sm text-center py-8">No sessions yet. Start practicing!</p>';return;}
+  list.innerHTML='';
+  d.sessions.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='glass-panel rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition';
+    card.innerHTML=`
+      <div class="flex items-center gap-3">
+        <span class="text-lg">${(SCENARIO_LABELS[s.scenario_type]||'📝').slice(0,2)}</span>
+        <div>
+          <div class="text-white text-sm font-medium">${SCENARIO_LABELS[s.scenario_type]||s.scenario_type}</div>
+          <div class="text-white/30 text-xs">${new Date(s.created_at).toLocaleDateString()} · ${s.total_turns} turns · ${fmtTime(s.duration_seconds)}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-right"><div class="text-lg font-bold ${s.overall_score>=7?'text-green-400':s.overall_score>=5?'text-yellow-400':'text-red-400'}">${s.overall_score}/10</div><div class="text-[10px] text-white/30">+${s.points_earned}pts</div></div>
+        <button onclick="event.stopPropagation();openReplay(${s.id})" class="text-white/40 hover:text-white"><span class="material-symbols-outlined text-[20px]">replay</span></button>
+      </div>`;
+    card.onclick=()=>openReplay(s.id);
+    list.appendChild(card);
+  });
+}).catch(()=>{document.getElementById('history-list').innerHTML='<p class="text-red-300 text-sm text-center py-8">Failed to load history</p>';});
+
+// Load badges
+fetch(API+'/gamification/profile',{headers}).then(r=>r.json()).then(d=>{
+  const grid=document.getElementById('badges-grid');
+  grid.innerHTML='';
+  (d.badges||[]).forEach(b=>{
+    const el=document.createElement('div');
+    el.className='glass-panel rounded-2xl p-4 text-center '+(b.earned?'':'opacity-40');
+    el.innerHTML=`<div class="text-3xl mb-2">${b.icon}</div><div class="text-white text-sm font-semibold">${b.name}</div><div class="text-white/40 text-xs mt-1">${b.desc}</div>${b.earned?'<div class="text-green-400 text-[10px] mt-2">✓ Earned</div>':'<div class="text-white/20 text-[10px] mt-2">Locked</div>'}`;
+    grid.appendChild(el);
+  });
+}).catch(()=>{});
+
+// Load leaderboard
+fetch(API+'/gamification/leaderboard').then(r=>r.json()).then(d=>{
+  const body=document.getElementById('lb-body');
+  body.innerHTML='';
+  (d.leaderboard||[]).forEach(p=>{
+    const medal=p.rank<=3?['🥇','🥈','🥉'][p.rank-1]:p.rank;
+    const isMe=p.username===user.username;
+    body.innerHTML+=`<tr class="${isMe?'bg-primary-container/10':''}border-b border-white/5"><td class="p-3 text-white/60">${medal}</td><td class="p-3 text-white font-medium">${p.display_name}${isMe?' (You)':''}</td><td class="p-3 text-right text-purple-400 font-bold">${p.total_points}</td><td class="p-3 text-right text-white/50">${p.total_sessions}</td><td class="p-3 text-right text-green-400">${p.streak_days}d</td></tr>`;
+  });
+  if(!d.leaderboard||!d.leaderboard.length)body.innerHTML='<tr><td colspan="5" class="p-6 text-center text-white/30">No players yet</td></tr>';
+}).catch(()=>{});
+
+// Replay
+async function openReplay(id){
+  const r=await fetch(API+'/history/session/'+id,{headers});
+  const s=await r.json();
+  document.getElementById('replay-meta').innerHTML=`<span>${SCENARIO_LABELS[s.scenario_type]||s.scenario_type}</span><span>·</span><span>${s.total_turns} turns</span><span>·</span><span>Score: ${s.overall_score}/10</span><span>·</span><span>${new Date(s.created_at).toLocaleString()}</span>`;
+  const chat=document.getElementById('replay-chat');
+  chat.innerHTML='';
+  (s.history||[]).forEach(m=>{
+    if(m.role==='system')return;
+    const isUser=m.role==='user';
+    chat.innerHTML+=`<div class="flex ${isUser?'justify-end':'justify-start'}"><div class="max-w-[80%] px-4 py-3 text-sm rounded-2xl ${isUser?'bg-primary-container/80 text-on-primary-container':'bg-surface-container-high text-white/90'}">${m.content}</div></div>`;
+  });
+  const modal = document.getElementById('replay-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+// Challenge lookup
+async function lookupChallenge(){
+  const code=document.getElementById('challenge-code-input').value.trim();
+  if(!code)return;
+  try{
+    const r=await fetch(API+'/history/challenge/'+code,{headers});
+    if(!r.ok){document.getElementById('challenge-preview').innerHTML='<p class="text-red-300 text-sm">Challenge not found</p>';document.getElementById('challenge-preview').classList.remove('hidden');return;}
+    const c=await r.json();
+    document.getElementById('challenge-preview').innerHTML=`
+      <div class="glass-panel rounded-xl p-4"><p class="text-white text-sm"><strong>${c.challenger}</strong> scored <strong class="text-primary-container">${c.challenger_score}/10</strong> in ${SCENARIO_LABELS[c.scenario_type]||c.scenario_type}</p>
+      <a href="index.html" class="mt-3 inline-block bg-primary-container text-on-primary-container px-4 py-2 rounded-lg text-sm font-semibold">Accept & Beat Their Score →</a></div>`;
+    document.getElementById('challenge-preview').classList.remove('hidden');
+    sessionStorage.setItem('convers_challenge',JSON.stringify(c));
+  }catch(e){document.getElementById('challenge-preview').innerHTML='<p class="text-red-300 text-sm">Error looking up challenge</p>';document.getElementById('challenge-preview').classList.remove('hidden');}
+}
+</script>
+</body></html>

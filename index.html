@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Convers - Speak Like a Natural Leader</title>
+<meta name="description" content="AI-powered conversation simulator. Practice interviews, public speaking, English conversation, and more."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
+    letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; word-wrap: normal; direction: ltr;
+    -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
+  }
+  .shiny-text {
+    background-image: linear-gradient(100deg, #64CEFB 20%, #ffffff 50%, #64CEFB 80%);
+    background-size: 200% auto; color: transparent;
+    -webkit-background-clip: text; background-clip: text;
+    animation: shine 3s linear infinite;
+  }
+  @keyframes shine { to { background-position: 200% center; } }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(62, 72, 78, 0.6);
+  }
+  .scenario-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .scenario-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(100, 206, 251, 0.15);
+  }
+  .scenario-card.selected {
+    border-color: #64cefb;
+    background: rgba(100, 206, 251, 0.1);
+    box-shadow: 0 0 20px rgba(100, 206, 251, 0.2);
+  }
+  .modal-overlay { transition: opacity 0.3s ease; }
+  .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+  .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+  .modal-overlay.hidden .modal-content { transform: scale(0.95); opacity: 0; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+  .fade-in-up-delay { animation: fadeInUp 0.6s ease 0.2s forwards; opacity: 0; }
+  .fade-in-up-delay2 { animation: fadeInUp 0.6s ease 0.4s forwards; opacity: 0; }
+</style>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-dim": "#131313", "surface-container-low": "#1b1b1b",
+          "surface-container": "#1f1f1f", "surface-container-high": "#2a2a2a",
+          "surface-container-highest": "#353535", "surface-bright": "#393939",
+          "background": "#131313", "on-background": "#e2e2e2",
+          "on-surface": "#e2e2e2", "on-surface-variant": "#bdc8cf",
+          "primary": "#b3e5ff", "primary-container": "#64cefb",
+          "on-primary-container": "#005671", "primary-fixed-dim": "#6bd2ff",
+          "outline-variant": "#3e484e", "outline": "#889299",
+          "surface": "#131313", "error": "#ffb4ab",
+          "secondary": "#c6c6c7", "tertiary": "#ffd7aa",
+        },
+        fontFamily: { "body-md": ["Inter"], "headline": ["Inter"] },
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden m-0 p-0 min-h-screen w-screen selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- Video Background -->
+<video autoplay class="fixed inset-0 w-full h-full object-cover z-0 opacity-60" loop muted playsinline>
+  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_105406_16f4600d-7a92-4292-b96e-b19156c7830a.mp4" type="video/mp4"/>
+</video>
+
+<!-- Page Content -->
+<div class="relative z-10 flex flex-col min-h-screen w-full">
+
+  <!-- Navbar -->
+  <header class="flex items-center justify-between px-6 md:px-10 py-5 w-full max-w-7xl mx-auto">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full border border-white flex items-center justify-center">
+        <div class="w-2 h-2 bg-white rounded-full"></div>
+      </div>
+      <span class="text-white font-bold text-xl tracking-tight">Convers</span>
+    </div>
+    <!-- Desktop Nav -->
+    <nav class="hidden md:flex items-center glass-panel rounded-full px-6 py-2 gap-6">
+      <a class="text-white/90 hover:text-white transition-colors text-sm font-medium" href="#">Home</a>
+      <a class="text-white/80 hover:text-white transition-colors text-sm font-medium" href="#scenarios">Scenarios</a>
+      <a class="text-white/80 hover:text-white transition-colors text-sm font-medium" href="#features">Features</a>
+      <a class="text-white/80 hover:text-white transition-colors text-sm font-medium" href="dashboard.html" id="nav-dash">Dashboard</a>
+    </nav>
+    <!-- Mobile Hamburger -->
+    <button id="mobile-menu-btn" class="md:hidden flex flex-col gap-1.5 p-2" aria-label="Menu">
+      <span class="block w-6 h-0.5 bg-white transition-all" id="ham-1"></span>
+      <span class="block w-6 h-0.5 bg-white transition-all" id="ham-2"></span>
+      <span class="block w-6 h-0.5 bg-white transition-all" id="ham-3"></span>
+    </button>
+    <!-- CTA -->
+    <div class="hidden md:flex items-center gap-3" id="nav-auth-area">
+      <a href="login.html" id="nav-login-btn" class="text-white/70 hover:text-white text-sm font-medium transition">Login</a>
+      <button onclick="document.getElementById('scenario-modal').classList.remove('hidden')" class="flex items-center gap-2 bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container px-6 py-2 rounded-full font-semibold text-sm transition-all shadow-[0_0_15px_rgba(100,206,251,0.2)] hover:shadow-[0_0_20px_rgba(100,206,251,0.4)]">
+        Get Started
+        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Drawer -->
+  <div id="mobile-menu" class="hidden md:hidden glass-panel mx-4 rounded-2xl p-4 flex flex-col gap-3 mb-4">
+    <a class="text-white/90 hover:text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-white/10 transition" href="#">Home</a>
+    <a class="text-white/80 hover:text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-white/10 transition" href="#scenarios">Scenarios</a>
+    <a class="text-white/80 hover:text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-white/10 transition" href="#features">Features</a>
+    <a class="text-white/80 hover:text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-white/10 transition" href="#how-it-works">How It Works</a>
+    <button onclick="document.getElementById('scenario-modal').classList.remove('hidden')" class="mt-2 bg-primary-container text-on-primary-container py-2 rounded-full font-semibold text-sm">Get Started</button>
+  </div>
+
+  <!-- Hero Section -->
+  <main class="flex-1 flex flex-col items-center justify-center text-center px-4 w-full max-w-5xl mx-auto py-16">
+    <div class="glass-panel px-4 py-1.5 rounded-full mb-8 inline-flex items-center gap-2 fade-in-up">
+      <div class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></div>
+      <span class="text-sm font-medium text-white/90">AI-Powered Practice Sessions Now Live</span>
+    </div>
+    <h1 class="flex flex-col items-center justify-center font-bold tracking-tighter mb-6 fade-in-up">
+      <span class="text-[clamp(2.5rem,6vw,5rem)] leading-[1.1] text-white/90 mb-2">Speak Like a</span>
+      <span class="text-[clamp(3.5rem,10vw,9rem)] leading-[0.85] shiny-text">Natural Leader.</span>
+    </h1>
+    <p class="text-white/60 text-lg max-w-xl mb-10 fade-in-up-delay">Practice interviews, public speaking, English conversation, and more — powered by real-time AI feedback.</p>
+    <div class="flex flex-col items-center gap-8 fade-in-up-delay2">
+      <button onclick="document.getElementById('scenario-modal').classList.remove('hidden')" class="group flex items-center gap-3 bg-surface hover:bg-surface-bright border border-outline-variant text-white px-8 py-4 rounded-full font-bold text-lg transition-all">
+        Start Practicing Now
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </button>
+      <div class="flex flex-wrap justify-center gap-3">
+        <span class="px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm font-medium backdrop-blur-md">🎤 Mock Interview</span>
+        <span class="px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm font-medium backdrop-blur-md">🧑‍💼 HR Round</span>
+        <span class="px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm font-medium backdrop-blur-md">🌐 English Speaking</span>
+        <span class="px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm font-medium backdrop-blur-md">🎯 UPSC Prep</span>
+        <span class="px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm font-medium backdrop-blur-md">📞 Customer Support</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Features Section -->
+  <section id="features" class="w-full max-w-6xl mx-auto px-6 py-20">
+    <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-4">Why Convers?</h2>
+    <p class="text-white/60 text-center mb-12 max-w-2xl mx-auto">Real-time AI analysis across multiple dimensions of communication.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-primary-container">psychology</span>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Sentiment Analysis</h3>
+        <p class="text-white/60 text-sm">AI-powered emotion detection tracks your positivity, confidence, and engagement in real-time.</p>
+      </div>
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-primary-container">spellcheck</span>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Grammar & Fluency</h3>
+        <p class="text-white/60 text-sm">LanguageTool integration catches grammar mistakes and scores your fluency with vocabulary richness metrics.</p>
+      </div>
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-primary-container">mic</span>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Voice Input</h3>
+        <p class="text-white/60 text-sm">Speak naturally with your microphone. Whisper AI transcribes your speech locally with zero cloud dependency.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section id="how-it-works" class="w-full max-w-4xl mx-auto px-6 py-20">
+    <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-12">How It Works</h2>
+    <div class="flex flex-col gap-8">
+      <div class="flex items-start gap-6">
+        <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold shrink-0">1</div>
+        <div><h3 class="text-white font-semibold text-lg">Choose a Scenario</h3><p class="text-white/60 text-sm mt-1">Pick from HR interviews, UPSC prep, public speaking, English practice, or create your own custom scenario.</p></div>
+      </div>
+      <div class="flex items-start gap-6">
+        <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold shrink-0">2</div>
+        <div><h3 class="text-white font-semibold text-lg">Have a Conversation</h3><p class="text-white/60 text-sm mt-1">Type or speak your responses. The AI stays in character and responds naturally, just like a real person.</p></div>
+      </div>
+      <div class="flex items-start gap-6">
+        <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold shrink-0">3</div>
+        <div><h3 class="text-white font-semibold text-lg">Get Detailed Feedback</h3><p class="text-white/60 text-sm mt-1">End the session to receive AI-powered analysis of your communication, confidence, grammar, vocabulary, and more.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-6xl mx-auto px-6 py-8 border-t border-white/10 text-center">
+    <p class="text-white/40 text-sm">© 2026 Convers. Built with FastAPI, Groq, Whisper & ❤️</p>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SCENARIO SELECTION MODAL -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div id="scenario-modal" class="modal-overlay fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+  <div class="modal-content glass-panel max-w-3xl w-full rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-white">Choose Your Scenario</h2>
+      <button onclick="document.getElementById('scenario-modal').classList.add('hidden')" class="text-white/60 hover:text-white transition">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6" id="scenario-grid">
+      <div class="scenario-card glass-panel rounded-2xl p-5 selected" data-type="hr_interview" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">🧑‍💼</div>
+        <h3 class="text-white font-semibold">HR Interview</h3>
+        <p class="text-white/50 text-sm mt-1">Practice behavioral & technical interview questions.</p>
+      </div>
+      <div class="scenario-card glass-panel rounded-2xl p-5" data-type="upsc_test" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">🏛️</div>
+        <h3 class="text-white font-semibold">UPSC Mock Interview</h3>
+        <p class="text-white/50 text-sm mt-1">Face a panel that tests your knowledge, ethics, and composure.</p>
+      </div>
+      <div class="scenario-card glass-panel rounded-2xl p-5" data-type="customer_support" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">📞</div>
+        <h3 class="text-white font-semibold">Customer Support</h3>
+        <p class="text-white/50 text-sm mt-1">Handle a frustrated customer — you're the support agent.</p>
+      </div>
+      <div class="scenario-card glass-panel rounded-2xl p-5" data-type="public_speaking" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">🎤</div>
+        <h3 class="text-white font-semibold">Public Speaking</h3>
+        <p class="text-white/50 text-sm mt-1">Practice speeches with an AI audience and speaking coach.</p>
+      </div>
+      <div class="scenario-card glass-panel rounded-2xl p-5" data-type="english_practice" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">🌐</div>
+        <h3 class="text-white font-semibold">English Practice</h3>
+        <p class="text-white/50 text-sm mt-1">Casual conversation with gentle grammar correction.</p>
+      </div>
+      <div class="scenario-card glass-panel rounded-2xl p-5" data-type="custom" onclick="selectScenario(this)">
+        <div class="text-2xl mb-2">✨</div>
+        <h3 class="text-white font-semibold">Custom Scenario</h3>
+        <p class="text-white/50 text-sm mt-1">Define your own persona and instructions.</p>
+      </div>
+    </div>
+
+    <!-- Config Panel (for HR Interview) -->
+    <div id="config-panel" class="glass-panel rounded-2xl p-5 mb-6">
+      <h3 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Configuration</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Job Role</label>
+          <input id="cfg-role" type="text" value="Software Engineer" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none"/>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Company Type</label>
+          <input id="cfg-company" type="text" value="tech startup" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none"/>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Difficulty</label>
+          <select id="cfg-difficulty" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none">
+            <option value="junior" class="bg-surface-container">Junior</option>
+            <option value="intermediate" selected class="bg-surface-container">Intermediate</option>
+            <option value="senior" class="bg-surface-container">Senior</option>
+          </select>
+        </div>
+      </div>
+      <!-- Language + RAG row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Language</label>
+          <select id="cfg-language" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none">
+            <option value="en" class="bg-surface-container">English</option>
+            <option value="hi" class="bg-surface-container">Hindi</option>
+            <option value="hinglish" class="bg-surface-container">Hinglish (Hindi + English)</option>
+            <option value="es" class="bg-surface-container">Spanish</option>
+            <option value="fr" class="bg-surface-container">French</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Upload Job Description (PDF) <span class="text-white/30">optional</span></label>
+          <input id="cfg-jd-file" type="file" accept=".pdf" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-1.5 text-white/60 text-sm file:mr-3 file:bg-primary-container/20 file:text-primary-container file:border-0 file:rounded file:px-2 file:py-1 file:text-xs"/>
+          <p class="text-green-400 text-xs mt-1 hidden" id="jd-status"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Scenario Panel (hidden by default) -->
+    <div id="custom-panel" class="glass-panel rounded-2xl p-5 mb-6 hidden">
+      <h3 class="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Custom Scenario</h3>
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="text-white/60 text-xs block mb-1">AI Persona</label>
+          <input id="cfg-persona" type="text" placeholder="e.g. a strict university professor" class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none"/>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs block mb-1">Instructions</label>
+          <textarea id="cfg-instructions" rows="3" placeholder="e.g. Quiz me on data structures..." class="w-full bg-white/5 border border-outline-variant rounded-lg px-3 py-2 text-white text-sm focus:border-primary-container focus:ring-0 focus:outline-none resize-none"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button id="start-session-btn" onclick="startScenario()" class="w-full bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container py-3 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">play_arrow</span>
+      Start Session
+    </button>
+  </div>
+</div>
+
+<script>
+  const API_BASE = window.location.origin + '/api';
+
+  // Auth-aware navbar
+  (function(){
+    const token = localStorage.getItem('convers_token');
+    const loginBtn = document.getElementById('nav-login-btn');
+    if (token && loginBtn) {
+      const user = JSON.parse(localStorage.getItem('convers_user') || '{}');
+      loginBtn.textContent = user.display_name || user.username || 'Profile';
+      loginBtn.href = 'dashboard.html';
+    }
+  })();
+
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  mobileMenuBtn.addEventListener('click', () => {
+    mobileMenu.classList.toggle('hidden');
+  });
+
+  // Scenario selection
+  let selectedScenario = 'hr_interview';
+  function selectScenario(el) {
+    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedScenario = el.dataset.type;
+    document.getElementById('config-panel').classList.toggle('hidden', selectedScenario === 'custom');
+    document.getElementById('custom-panel').classList.toggle('hidden', selectedScenario !== 'custom');
+  }
+
+  async function startScenario() {
+    const btn = document.getElementById('start-session-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="animate-spin material-symbols-outlined text-[20px]">progress_activity</span> Starting...';
+
+    let config = {};
+    let language = document.getElementById('cfg-language')?.value || 'en';
+
+    if (selectedScenario === 'hr_interview') {
+      config = {
+        job_role: document.getElementById('cfg-role').value,
+        company_type: document.getElementById('cfg-company').value,
+        difficulty: document.getElementById('cfg-difficulty').value,
+        language: language,
+      };
+    } else if (selectedScenario === 'custom') {
+      config = {
+        custom_persona: document.getElementById('cfg-persona').value,
+        custom_instructions: document.getElementById('cfg-instructions').value,
+        language: language,
+      };
+    } else {
+      // For all other scenarios, still pass language
+      config = { language: language };
+    }
+
+    // RAG: upload JD if present
+    const jdFile = document.getElementById('cfg-jd-file')?.files?.[0];
+    if (jdFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', jdFile);
+        const r = await fetch(API_BASE + '/rag/upload-jd', { method: 'POST', body: formData });
+        if (r.ok) {
+          const data = await r.json();
+          config.jd_context = data.extracted_text;
+          document.getElementById('jd-status').textContent = '✓ JD uploaded (' + data.char_count + ' chars)';
+          document.getElementById('jd-status').classList.remove('hidden');
+        }
+      } catch (e) { console.warn('JD upload failed:', e); }
+    }
+
+    sessionStorage.setItem('convers_scenario', JSON.stringify({
+      scenario_type: selectedScenario,
+      scenario_config: config,
+      language: language,
+    }));
+    window.location.href = 'chat.html';
+  }
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('scenario-modal').classList.add('hidden');
+    }
+  });
+</script>
+</body>
+</html>
