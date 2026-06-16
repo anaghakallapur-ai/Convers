@@ -1,3 +1,3 @@
 """
-Scenarios package for the Convers backend.
+Voice processing package for the Convers backend.
 """
